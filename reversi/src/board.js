@@ -97,7 +97,7 @@ Board.prototype._positionsToFlip = function(pos, color, dir, piecesToFlip =[]){
  * color being flipped.
  */
 Board.prototype.validMove = function (pos, color) {
-  if (this.isOccupied(pos)) return false;
+  if (!this.isValidPos(pos) || this.isOccupied(pos)) return false;
   let self = this;
   let valid = false;
   Board.DIRS.forEach(function(dir) {
@@ -130,16 +130,20 @@ Board.prototype.placePiece = function (pos, color) {
  * the Board for a given color.
  */
 Board.prototype.validMoves = function (color) {
-
-  for (let i= 0; i < 8; i++) {
-    
+  let valid = [];
+  for (let i = 0; i < 8; i++) {
+    for (let j = 0; j < 8; j++) {
+      if (this.validMove([i, j], color)) valid.push([i, j]);
+    }
   }
+  return valid;
 };
 
 /**
  * Checks if there are any valid moves for the given color.
  */
 Board.prototype.hasMove = function (color) {
+  return this.validMoves(color).length > 0;
 };
 
 
@@ -149,6 +153,7 @@ Board.prototype.hasMove = function (color) {
  * the black player are out of moves.
  */
 Board.prototype.isOver = function () {
+  return !this.hasMove("black") && !this.hasMove("white");
 };
 
 
@@ -158,6 +163,22 @@ Board.prototype.isOver = function () {
  * Prints a string representation of the Board to the console.
  */
 Board.prototype.print = function () {
+  let row = "  0 1 2 3 4 5 6 7";
+  console.log(row);
+  for (let i = 0; i < 8; i++) {
+    row = `${i}`;
+    for (let j = 0; j < 8; j++) {
+      let piece = this.getPiece([i, j]);
+      if (!piece) {
+        row += "  ";
+      } else if (piece.color === "white") {
+        row += " ○";
+      } else {
+        row += " ●";
+      }
+    }
+    console.log(row);
+  }
 };
 
 
