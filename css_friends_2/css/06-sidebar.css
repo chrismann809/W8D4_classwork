@@ -2,7 +2,12 @@
 .profile-picture {
     margin-top: -120px;
     position: relative;
+    display: block;
+    border: 1px solid #000;
+    background: #000;
+    border-radius: 5px;
 }
+
 
 .profile-info h2 {
     font-size: 25px;
