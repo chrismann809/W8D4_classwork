@@ -48,9 +48,8 @@ Board.prototype.isValidPos = function (pos) {
  * throwing an Error if the position is invalid.
  */
 Board.prototype.getPiece = function (pos) {
-  if (this.isValidPos(pos)) {
-    
-  }
+  if (!this.isValidPos(pos)) throw new Error('Not valid pos!');
+  return this.grid[pos[0]][pos[1]];
 };
 
 /**
@@ -58,12 +57,17 @@ Board.prototype.getPiece = function (pos) {
  * matches a given color.
  */
 Board.prototype.isMine = function (pos, color) {
+  let piece = this.getPiece(pos);
+  if (piece) return piece.color === color;
+  return false;
 };
 
 /**
  * Checks if a given position has a piece on it.
  */
 Board.prototype.isOccupied = function (pos) {
+  if (this.getPiece(pos)) return true;
+  return false;
 };
 
 /**
@@ -79,7 +83,12 @@ Board.prototype.isOccupied = function (pos) {
  *
  * Returns empty array if no pieces of the opposite color are found.
  */
-Board.prototype._positionsToFlip = function(pos, color, dir, piecesToFlip){
+Board.prototype._positionsToFlip = function(pos, color, dir, piecesToFlip = []){
+  newPos = [pos[0] + dir[0], pos[1] + dir[1]];
+  if (!this.isValidPos(newPos) || !this.isOccupied(newPos)) return [];
+  if (this.isMine(newPos, color)) return piecesToFlip;
+  piecesToFlip.push(newPos);
+  return this._positionsToFlip(newPos, color, dir, piecesToFlip);
 };
 
 /**
@@ -88,6 +97,15 @@ Board.prototype._positionsToFlip = function(pos, color, dir, piecesToFlip){
  * color being flipped.
  */
 Board.prototype.validMove = function (pos, color) {
+  if (this.isOccupied(pos)) return false;
+  let self = this;
+  let valid = false;
+  Board.DIRS.forEach(function(dir) {
+    if (!(self._positionsToFlip(pos, color, dir).length === 0)) {
+      valid = true;
+    }
+  });
+  return valid;
 };
 
 /**
@@ -97,6 +115,15 @@ Board.prototype.validMove = function (pos, color) {
  * Throws an error if the position represents an invalid move.
  */
 Board.prototype.placePiece = function (pos, color) {
+  let self = this;
+  if (!this.validMove(pos, color)) throw new Error('Invalid move!');
+  this.grid[pos[0]][pos[1]] = new Piece(color);
+  Board.DIRS.forEach(function(dir) {
+    let piecesToFlip = self._positionsToFlip(pos, color, dir);
+    piecesToFlip.forEach(function(flipPos) {
+      self.getPiece(flipPos).flip();
+    });
+  });
 };
 
 /**
